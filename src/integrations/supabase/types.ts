@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      registrations: {
+        Row: {
+          authorization_letter_path: string | null
+          certification_page_path: string | null
+          created_at: string
+          date_of_birth: string
+          department: string
+          faculty: string
+          full_name: string
+          hod_email: string
+          hod_full_name: string
+          hod_phone: string
+          hod_title: string
+          id: string
+          institution: string
+          local_government: string
+          marital_status: string
+          matriculation_number: string
+          nationality: string
+          nin: string
+          nin_document_path: string | null
+          nin_document_type: string | null
+          nok_email: string
+          nok_name: string
+          nok_phone: string
+          passport_photo_path: string | null
+          payment_receipt_path: string | null
+          payment_status: string
+          phone_number: string
+          programme_category: string
+          programme_type: string
+          project_file_paths: string[] | null
+          project_title: string
+          residential_address: string
+          sex: string
+          state_of_origin: string
+          supervisor_email: string
+          supervisor_full_name: string
+          supervisor_phone: string
+          supervisor_title: string
+          town_city: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          authorization_letter_path?: string | null
+          certification_page_path?: string | null
+          created_at?: string
+          date_of_birth: string
+          department: string
+          faculty: string
+          full_name: string
+          hod_email: string
+          hod_full_name: string
+          hod_phone: string
+          hod_title: string
+          id?: string
+          institution: string
+          local_government: string
+          marital_status: string
+          matriculation_number: string
+          nationality: string
+          nin: string
+          nin_document_path?: string | null
+          nin_document_type?: string | null
+          nok_email: string
+          nok_name: string
+          nok_phone: string
+          passport_photo_path?: string | null
+          payment_receipt_path?: string | null
+          payment_status?: string
+          phone_number: string
+          programme_category: string
+          programme_type: string
+          project_file_paths?: string[] | null
+          project_title: string
+          residential_address: string
+          sex: string
+          state_of_origin: string
+          supervisor_email: string
+          supervisor_full_name: string
+          supervisor_phone: string
+          supervisor_title: string
+          town_city: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          authorization_letter_path?: string | null
+          certification_page_path?: string | null
+          created_at?: string
+          date_of_birth?: string
+          department?: string
+          faculty?: string
+          full_name?: string
+          hod_email?: string
+          hod_full_name?: string
+          hod_phone?: string
+          hod_title?: string
+          id?: string
+          institution?: string
+          local_government?: string
+          marital_status?: string
+          matriculation_number?: string
+          nationality?: string
+          nin?: string
+          nin_document_path?: string | null
+          nin_document_type?: string | null
+          nok_email?: string
+          nok_name?: string
+          nok_phone?: string
+          passport_photo_path?: string | null
+          payment_receipt_path?: string | null
+          payment_status?: string
+          phone_number?: string
+          programme_category?: string
+          programme_type?: string
+          project_file_paths?: string[] | null
+          project_title?: string
+          residential_address?: string
+          sex?: string
+          state_of_origin?: string
+          supervisor_email?: string
+          supervisor_full_name?: string
+          supervisor_phone?: string
+          supervisor_title?: string
+          town_city?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
