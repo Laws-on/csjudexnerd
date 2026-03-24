@@ -10,6 +10,7 @@ import StageDocuments from '@/components/stages/StageDocuments';
 import StagePayment from '@/components/stages/StagePayment';
 import { RegistrationData, initialRegistrationData } from '@/types/registration';
 import { useToast } from '@/hooks/use-toast';
+import { submitRegistration } from '@/lib/registration-service';
 import { GraduationCap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -28,12 +29,20 @@ const Registration: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast({ title: 'Error', description: 'You must be logged in to submit.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
-    // Simulate submission
-    await new Promise((r) => setTimeout(r, 2000));
-    setSubmitting(false);
-    setCompleted(true);
-    toast({ title: 'Registration Complete!', description: 'Your enrollment has been submitted successfully.' });
+    try {
+      await submitRegistration(user.id, data);
+      setCompleted(true);
+      toast({ title: 'Registration Complete!', description: 'Your enrollment has been submitted successfully.' });
+    } catch (err: any) {
+      toast({ title: 'Submission Failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (completed) {
