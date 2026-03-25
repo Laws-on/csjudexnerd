@@ -1,0 +1,278 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { LogOut, Users, CreditCard, Eye, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+
+interface Registration {
+  id: string;
+  user_id: string;
+  full_name: string;
+  phone_number: string;
+  sex: string;
+  date_of_birth: string;
+  marital_status: string;
+  nin: string;
+  nationality: string;
+  state_of_origin: string;
+  local_government: string;
+  town_city: string;
+  residential_address: string;
+  nok_name: string;
+  nok_phone: string;
+  nok_email: string;
+  institution: string;
+  faculty: string;
+  department: string;
+  programme_category: string;
+  programme_type: string;
+  matriculation_number: string;
+  hod_title: string;
+  hod_full_name: string;
+  hod_phone: string;
+  hod_email: string;
+  supervisor_title: string;
+  supervisor_full_name: string;
+  supervisor_phone: string;
+  supervisor_email: string;
+  project_title: string;
+  payment_status: string;
+  created_at: string;
+}
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  confirmed: 'bg-green-100 text-green-800 border-green-300',
+  rejected: 'bg-red-100 text-red-800 border-red-300',
+};
+
+export default function AdminDashboard() {
+  const { user, signOut, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selected, setSelected] = useState<Registration | null>(null);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) { navigate('/admin'); return; }
+
+    (async () => {
+      const { data } = await supabase
+        .from('user_roles' as any)
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin');
+
+      if (!data || (data as any[]).length === 0) {
+        toast.error('Access denied — you are not an admin.');
+        navigate('/');
+        return;
+      }
+      setIsAdmin(true);
+      fetchRegistrations();
+    })();
+  }, [user, authLoading]);
+
+  const fetchRegistrations = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('registrations').select('*');
+    if (error) { toast.error(error.message); }
+    else { setRegistrations((data as Registration[]) || []); }
+    setLoading(false);
+  };
+
+  const updatePaymentStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from('registrations').update({ payment_status: status } as any).eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Payment status updated to ${status}`);
+    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status } : r));
+    if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status } : null);
+  };
+
+  const filtered = registrations.filter(r =>
+    r.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    r.matriculation_number.toLowerCase().includes(search.toLowerCase()) ||
+    r.institution.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const stats = {
+    total: registrations.length,
+    pending: registrations.filter(r => r.payment_status === 'pending').length,
+    confirmed: registrations.filter(r => r.payment_status === 'confirmed').length,
+  };
+
+  if (authLoading || (!isAdmin && loading)) {
+    return <div className="flex items-center justify-center min-h-screen bg-background"><p className="text-muted-foreground">Loading...</p></div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
+        <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate('/'); }}>
+          <LogOut className="mr-2 h-4 w-4" /> Sign Out
+        </Button>
+      </header>
+
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card><CardContent className="pt-6 flex items-center gap-4">
+            <Users className="h-8 w-8 text-primary" />
+            <div><p className="text-sm text-muted-foreground">Total Registrations</p><p className="text-2xl font-bold">{stats.total}</p></div>
+          </CardContent></Card>
+          <Card><CardContent className="pt-6 flex items-center gap-4">
+            <CreditCard className="h-8 w-8 text-accent-foreground" />
+            <div><p className="text-sm text-muted-foreground">Pending Payments</p><p className="text-2xl font-bold">{stats.pending}</p></div>
+          </CardContent></Card>
+          <Card><CardContent className="pt-6 flex items-center gap-4">
+            <CreditCard className="h-8 w-8 text-primary" />
+            <div><p className="text-sm text-muted-foreground">Confirmed Payments</p><p className="text-2xl font-bold">{stats.confirmed}</p></div>
+          </CardContent></Card>
+        </div>
+
+        {/* Search & Table */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Student Registrations</CardTitle>
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search name, matric, institution..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? <p className="text-muted-foreground py-8 text-center">Loading registrations...</p> : filtered.length === 0 ? (
+              <p className="text-muted-foreground py-8 text-center">No registrations found.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Institution</TableHead>
+                    <TableHead>Matric No.</TableHead>
+                    <TableHead>Programme</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(reg => (
+                    <TableRow key={reg.id}>
+                      <TableCell className="font-medium">{reg.full_name}</TableCell>
+                      <TableCell>{reg.institution}</TableCell>
+                      <TableCell>{reg.matriculation_number}</TableCell>
+                      <TableCell>{reg.programme_type}</TableCell>
+                      <TableCell>
+                        <Select value={reg.payment_status} onValueChange={v => updatePaymentStatus(reg.id, v)}>
+                          <SelectTrigger className={`w-32 text-xs h-8 ${statusColors[reg.payment_status] || ''}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="confirmed">Confirmed</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" onClick={() => setSelected(reg)}>
+                          <Eye className="h-4 w-4 mr-1" /> View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detail Dialog */}
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh]">
+          <DialogHeader><DialogTitle>{selected?.full_name} — Registration Details</DialogTitle></DialogHeader>
+          {selected && (
+            <ScrollArea className="max-h-[65vh] pr-4">
+              <div className="space-y-4">
+                <Section title="Personal Information">
+                  <Field label="Phone" value={selected.phone_number} />
+                  <Field label="Sex" value={selected.sex} />
+                  <Field label="Date of Birth" value={selected.date_of_birth} />
+                  <Field label="Marital Status" value={selected.marital_status} />
+                  <Field label="NIN" value={selected.nin} />
+                  <Field label="Nationality" value={selected.nationality} />
+                  <Field label="State of Origin" value={selected.state_of_origin} />
+                  <Field label="LGA" value={selected.local_government} />
+                  <Field label="Town/City" value={selected.town_city} />
+                  <Field label="Address" value={selected.residential_address} />
+                </Section>
+                <Separator />
+                <Section title="Next of Kin">
+                  <Field label="Name" value={selected.nok_name} />
+                  <Field label="Phone" value={selected.nok_phone} />
+                  <Field label="Email" value={selected.nok_email} />
+                </Section>
+                <Separator />
+                <Section title="Academic Data">
+                  <Field label="Institution" value={selected.institution} />
+                  <Field label="Faculty" value={selected.faculty} />
+                  <Field label="Department" value={selected.department} />
+                  <Field label="Programme" value={`${selected.programme_category} — ${selected.programme_type}`} />
+                  <Field label="Matric No." value={selected.matriculation_number} />
+                </Section>
+                <Separator />
+                <Section title="HOD & Supervisor">
+                  <Field label="HOD" value={`${selected.hod_title} ${selected.hod_full_name}`} />
+                  <Field label="HOD Phone" value={selected.hod_phone} />
+                  <Field label="HOD Email" value={selected.hod_email} />
+                  <Field label="Supervisor" value={`${selected.supervisor_title} ${selected.supervisor_full_name}`} />
+                  <Field label="Supervisor Phone" value={selected.supervisor_phone} />
+                  <Field label="Supervisor Email" value={selected.supervisor_email} />
+                </Section>
+                <Separator />
+                <Section title="Project & Payment">
+                  <Field label="Project Title" value={selected.project_title} />
+                  <Field label="Payment Status" value={selected.payment_status} />
+                  <Field label="Registered" value={new Date(selected.created_at).toLocaleDateString()} />
+                </Section>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-primary mb-2">{title}</h3>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between py-1">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium text-foreground text-right">{value}</span>
+    </div>
+  );
+}
