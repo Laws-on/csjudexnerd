@@ -136,11 +136,11 @@ export default function AdminDashboard() {
             <div><p className="text-sm text-muted-foreground">Total Registrations</p><p className="text-2xl font-bold">{stats.total}</p></div>
           </CardContent></Card>
           <Card><CardContent className="pt-6 flex items-center gap-4">
-            <CreditCard className="h-8 w-8 text-yellow-600" />
+            <CreditCard className="h-8 w-8 text-accent-foreground" />
             <div><p className="text-sm text-muted-foreground">Pending Payments</p><p className="text-2xl font-bold">{stats.pending}</p></div>
           </CardContent></Card>
           <Card><CardContent className="pt-6 flex items-center gap-4">
-            <CreditCard className="h-8 w-8 text-green-600" />
+            <CreditCard className="h-8 w-8 text-primary" />
             <div><p className="text-sm text-muted-foreground">Confirmed Payments</p><p className="text-2xl font-bold">{stats.confirmed}</p></div>
           </CardContent></Card>
         </div>
