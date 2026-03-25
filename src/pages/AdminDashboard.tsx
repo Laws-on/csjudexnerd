@@ -5,13 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { LogOut, Users, CreditCard, Eye, Search } from 'lucide-react';
+import { LogOut, Users, CreditCard, Eye, Search, Download, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface Registration {
@@ -48,6 +47,13 @@ interface Registration {
   project_title: string;
   payment_status: string;
   created_at: string;
+  certification_page_path: string | null;
+  passport_photo_path: string | null;
+  nin_document_path: string | null;
+  nin_document_type: string | null;
+  authorization_letter_path: string | null;
+  payment_receipt_path: string | null;
+  project_file_paths: string[] | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -55,6 +61,20 @@ const statusColors: Record<string, string> = {
   confirmed: 'bg-green-100 text-green-800 border-green-300',
   rejected: 'bg-red-100 text-red-800 border-red-300',
 };
+
+async function downloadFile(path: string, filename: string) {
+  const { data, error } = await supabase.storage.from('registration-docs').download(path);
+  if (error || !data) {
+    toast.error('Failed to download file');
+    return;
+  }
+  const url = URL.createObjectURL(data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
@@ -120,7 +140,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
         <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate('/'); }}>
@@ -129,7 +148,6 @@ export default function AdminDashboard() {
       </header>
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card><CardContent className="pt-6 flex items-center gap-4">
             <Users className="h-8 w-8 text-primary" />
@@ -145,7 +163,6 @@ export default function AdminDashboard() {
           </CardContent></Card>
         </div>
 
-        {/* Search & Table */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Student Registrations</CardTitle>
@@ -250,11 +267,55 @@ export default function AdminDashboard() {
                   <Field label="Payment Status" value={selected.payment_status} />
                   <Field label="Registered" value={new Date(selected.created_at).toLocaleDateString()} />
                 </Section>
+                <Separator />
+                <Section title="Uploaded Documents">
+                  <div className="col-span-2 space-y-2">
+                    <DocLink label="Certification Page" path={selected.certification_page_path} name={selected.full_name} />
+                    <DocLink label="Passport Photo" path={selected.passport_photo_path} name={selected.full_name} />
+                    <DocLink label={`NIN Document (${selected.nin_document_type || 'N/A'})`} path={selected.nin_document_path} name={selected.full_name} />
+                    <DocLink label="Authorization Letter" path={selected.authorization_letter_path} name={selected.full_name} />
+                    <DocLink label="Payment Receipt" path={selected.payment_receipt_path} name={selected.full_name} />
+                    {selected.project_file_paths && selected.project_file_paths.length > 0 && (
+                      selected.project_file_paths.map((p, i) => (
+                        <DocLink key={i} label={`Project File ${i + 1}`} path={p} name={selected.full_name} />
+                      ))
+                    )}
+                  </div>
+                </Section>
               </div>
             </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function DocLink({ label, path, name }: { label: string; path: string | null; name: string }) {
+  if (!path) {
+    return (
+      <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">{label}</span>
+        </div>
+        <span className="text-xs text-muted-foreground italic">Not uploaded</span>
+      </div>
+    );
+  }
+
+  const ext = path.split('.').pop() || 'file';
+  const filename = `${name.replace(/\s+/g, '_')}_${label.replace(/\s+/g, '_')}.${ext}`;
+
+  return (
+    <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
+      <div className="flex items-center gap-2">
+        <FileText className="h-4 w-4 text-primary" />
+        <span className="text-sm text-foreground">{label}</span>
+      </div>
+      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => downloadFile(path, filename)}>
+        <Download className="h-3.5 w-3.5 mr-1" /> Download
+      </Button>
     </div>
   );
 }
