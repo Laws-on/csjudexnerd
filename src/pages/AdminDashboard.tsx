@@ -181,6 +181,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Institution</TableHead>
                     <TableHead>Matric No.</TableHead>
                     <TableHead>Programme</TableHead>
