@@ -127,7 +127,8 @@ export default function AdminDashboard() {
   const filtered = registrations.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase()) ||
     r.matriculation_number.toLowerCase().includes(search.toLowerCase()) ||
-    r.institution.toLowerCase().includes(search.toLowerCase())
+    r.institution.toLowerCase().includes(search.toLowerCase()) ||
+    (r.student_email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const stats = {
