@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { LogOut, Users, CreditCard, Eye, Search, Download, FileText } from 'lucide-react';
+import { LogOut, Users, CreditCard, Eye, Search, Download, FileText, FileCheck } from 'lucide-react';
+import { generateApprovedSlip } from '@/lib/generate-approved-slip';
 import { Input } from '@/components/ui/input';
 
 interface Registration {
@@ -267,6 +268,29 @@ export default function AdminDashboard() {
                   <Field label="Payment Status" value={selected.payment_status} />
                   <Field label="Registered" value={new Date(selected.created_at).toLocaleDateString()} />
                 </Section>
+                {selected.payment_status === 'confirmed' && (
+                  <>
+                    <Separator />
+                    <Button
+                      className="w-full"
+                      onClick={() =>
+                        generateApprovedSlip({
+                          fullName: selected.full_name,
+                          matriculationNumber: selected.matriculation_number,
+                          institution: selected.institution,
+                          faculty: selected.faculty,
+                          department: selected.department,
+                          programmeCategory: selected.programme_category,
+                          programmeType: selected.programme_type,
+                          projectTitle: selected.project_title,
+                          approvalDate: new Date().toLocaleDateString(),
+                        })
+                      }
+                    >
+                      <FileCheck className="h-4 w-4 mr-2" /> Generate Approved Slip (PDF)
+                    </Button>
+                  </>
+                )}
                 <Separator />
                 <Section title="Uploaded Documents">
                   <div className="col-span-2 space-y-2">
