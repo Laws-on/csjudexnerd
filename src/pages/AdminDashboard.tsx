@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 interface Registration {
   id: string;
   user_id: string;
+  student_email: string | null;
   full_name: string;
   phone_number: string;
   sex: string;
