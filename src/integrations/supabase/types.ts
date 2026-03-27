@@ -50,6 +50,7 @@ export type Database = {
           residential_address: string
           sex: string
           state_of_origin: string
+          student_email: string | null
           supervisor_email: string
           supervisor_full_name: string
           supervisor_phone: string
@@ -93,6 +94,7 @@ export type Database = {
           residential_address: string
           sex: string
           state_of_origin: string
+          student_email?: string | null
           supervisor_email: string
           supervisor_full_name: string
           supervisor_phone: string
@@ -136,6 +138,7 @@ export type Database = {
           residential_address?: string
           sex?: string
           state_of_origin?: string
+          student_email?: string | null
           supervisor_email?: string
           supervisor_full_name?: string
           supervisor_phone?: string

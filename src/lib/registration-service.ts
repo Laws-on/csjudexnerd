@@ -24,6 +24,7 @@ export async function submitRegistration(userId: string, data: RegistrationData)
 
   const { error } = await supabase.from('registrations').insert({
     user_id: userId,
+    student_email: data.email,
     full_name: data.fullName,
     phone_number: data.phoneNumber,
     sex: data.sex,

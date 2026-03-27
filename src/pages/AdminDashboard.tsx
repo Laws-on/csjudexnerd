@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 interface Registration {
   id: string;
   user_id: string;
+  student_email: string | null;
   full_name: string;
   phone_number: string;
   sex: string;
@@ -126,7 +127,8 @@ export default function AdminDashboard() {
   const filtered = registrations.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase()) ||
     r.matriculation_number.toLowerCase().includes(search.toLowerCase()) ||
-    r.institution.toLowerCase().includes(search.toLowerCase())
+    r.institution.toLowerCase().includes(search.toLowerCase()) ||
+    (r.student_email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const stats = {
@@ -180,6 +182,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Institution</TableHead>
                     <TableHead>Matric No.</TableHead>
                     <TableHead>Programme</TableHead>
@@ -191,6 +194,7 @@ export default function AdminDashboard() {
                   {filtered.map(reg => (
                     <TableRow key={reg.id}>
                       <TableCell className="font-medium">{reg.full_name}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">{reg.student_email || '—'}</TableCell>
                       <TableCell>{reg.institution}</TableCell>
                       <TableCell>{reg.matriculation_number}</TableCell>
                       <TableCell>{reg.programme_type}</TableCell>
@@ -228,6 +232,7 @@ export default function AdminDashboard() {
             <ScrollArea className="max-h-[65vh] pr-4">
               <div className="space-y-4">
                 <Section title="Personal Information">
+                  <Field label="Email" value={selected.student_email || 'N/A'} />
                   <Field label="Phone" value={selected.phone_number} />
                   <Field label="Sex" value={selected.sex} />
                   <Field label="Date of Birth" value={selected.date_of_birth} />
