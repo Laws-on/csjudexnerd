@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { LogOut, Users, CreditCard, Eye, Search, Download, FileText } from 'lucide-react';
+import { LogOut, Users, CreditCard, Eye, Search, Download, FileText, FileCheck } from 'lucide-react';
+import { generateApprovedSlip } from '@/lib/generate-approved-slip';
 import { Input } from '@/components/ui/input';
 
 interface Registration {
