@@ -231,6 +231,7 @@ export default function AdminDashboard() {
             <ScrollArea className="max-h-[65vh] pr-4">
               <div className="space-y-4">
                 <Section title="Personal Information">
+                  <Field label="Email" value={selected.student_email || 'N/A'} />
                   <Field label="Phone" value={selected.phone_number} />
                   <Field label="Sex" value={selected.sex} />
                   <Field label="Date of Birth" value={selected.date_of_birth} />
