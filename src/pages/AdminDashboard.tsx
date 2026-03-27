@@ -193,6 +193,7 @@ export default function AdminDashboard() {
                   {filtered.map(reg => (
                     <TableRow key={reg.id}>
                       <TableCell className="font-medium">{reg.full_name}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">{reg.student_email || '—'}</TableCell>
                       <TableCell>{reg.institution}</TableCell>
                       <TableCell>{reg.matriculation_number}</TableCell>
                       <TableCell>{reg.programme_type}</TableCell>
