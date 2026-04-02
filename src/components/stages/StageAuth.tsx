@@ -98,12 +98,12 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Min. 6 characters"
+                placeholder="Min. 8 chars, upper, lower, number, special"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setPasswordError(null); }}
                 className="pl-10 pr-10"
                 required
-                minLength={6}
+                minLength={8}
               />
               <button
                 type="button"
