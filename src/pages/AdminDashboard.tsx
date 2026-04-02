@@ -78,6 +78,12 @@ async function downloadFile(path: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+async function getPreviewUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('registration-docs').download(path);
+  if (error || !data) return null;
+  return URL.createObjectURL(data);
+}
+
 export default function AdminDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -86,7 +92,9 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selected, setSelected] = useState<Registration | null>(null);
   const [search, setSearch] = useState('');
-
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLabel, setPreviewLabel] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/admin'); return; }
@@ -122,6 +130,27 @@ export default function AdminDashboard() {
     toast.success(`Payment status updated to ${status}`);
     setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status } : r));
     if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status } : null);
+  };
+
+  const handlePreview = async (path: string, label: string) => {
+    setPreviewLabel(label);
+    setPreviewLoading(true);
+    setPreviewUrl('loading');
+    const url = await getPreviewUrl(path);
+    if (!url) {
+      toast.error('Failed to load preview');
+      setPreviewUrl(null);
+      setPreviewLoading(false);
+      return;
+    }
+    setPreviewUrl(url);
+    setPreviewLoading(false);
+  };
+
+  const closePreview = () => {
+    if (previewUrl && previewUrl !== 'loading') URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewLabel('');
   };
 
   const filtered = registrations.filter(r =>
@@ -299,14 +328,14 @@ export default function AdminDashboard() {
                 <Separator />
                 <Section title="Uploaded Documents">
                   <div className="col-span-2 space-y-2">
-                    <DocLink label="Certification Page" path={selected.certification_page_path} name={selected.full_name} />
-                    <DocLink label="Passport Photo" path={selected.passport_photo_path} name={selected.full_name} />
-                    <DocLink label={`NIN Document (${selected.nin_document_type || 'N/A'})`} path={selected.nin_document_path} name={selected.full_name} />
-                    <DocLink label="Authorization Letter" path={selected.authorization_letter_path} name={selected.full_name} />
-                    <DocLink label="Payment Receipt" path={selected.payment_receipt_path} name={selected.full_name} />
+                    <DocLink label="Certification Page" path={selected.certification_page_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Passport Photo" path={selected.passport_photo_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label={`NIN Document (${selected.nin_document_type || 'N/A'})`} path={selected.nin_document_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Authorization Letter" path={selected.authorization_letter_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Payment Receipt" path={selected.payment_receipt_path} name={selected.full_name} onPreview={handlePreview} />
                     {selected.project_file_paths && selected.project_file_paths.length > 0 && (
                       selected.project_file_paths.map((p, i) => (
-                        <DocLink key={i} label={`Project File ${i + 1}`} path={p} name={selected.full_name} />
+                        <DocLink key={i} label={`Project File ${i + 1}`} path={p} name={selected.full_name} onPreview={handlePreview} />
                       ))
                     )}
                   </div>
@@ -316,11 +345,31 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Document Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={open => !open && closePreview()}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader><DialogTitle>{previewLabel}</DialogTitle></DialogHeader>
+          {previewLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <p className="text-muted-foreground">Loading preview...</p>
+            </div>
+          ) : previewUrl && previewUrl !== 'loading' && (
+            <div className="max-h-[75vh] overflow-auto">
+              {previewUrl.includes('blob:') && (
+                previewLabel.toLowerCase().includes('photo') || previewLabel.toLowerCase().includes('passport')
+                  ? <img src={previewUrl} alt={previewLabel} className="max-w-full mx-auto rounded-md" />
+                  : <iframe src={previewUrl} className="w-full h-[70vh] rounded-md border" title={previewLabel} />
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function DocLink({ label, path, name }: { label: string; path: string | null; name: string }) {
+function DocLink({ label, path, name, onPreview }: { label: string; path: string | null; name: string; onPreview?: (path: string, label: string) => void }) {
   if (!path) {
     return (
       <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
@@ -333,8 +382,9 @@ function DocLink({ label, path, name }: { label: string; path: string | null; na
     );
   }
 
-  const ext = path.split('.').pop() || 'file';
+  const ext = path.split('.').pop()?.toLowerCase() || 'file';
   const filename = `${name.replace(/\s+/g, '_')}_${label.replace(/\s+/g, '_')}.${ext}`;
+  const canPreview = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
 
   return (
     <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
@@ -342,9 +392,16 @@ function DocLink({ label, path, name }: { label: string; path: string | null; na
         <FileText className="h-4 w-4 text-primary" />
         <span className="text-sm text-foreground">{label}</span>
       </div>
-      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => downloadFile(path, filename)}>
-        <Download className="h-3.5 w-3.5 mr-1" /> Download
-      </Button>
+      <div className="flex gap-1">
+        {canPreview && onPreview && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onPreview(path, label)}>
+            <Eye className="h-3.5 w-3.5 mr-1" /> Preview
+          </Button>
+        )}
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => downloadFile(path, filename)}>
+          <Download className="h-3.5 w-3.5 mr-1" /> Download
+        </Button>
+      </div>
     </div>
   );
 }
