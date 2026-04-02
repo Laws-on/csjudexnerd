@@ -78,6 +78,12 @@ async function downloadFile(path: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+async function getPreviewUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('registration-docs').download(path);
+  if (error || !data) return null;
+  return URL.createObjectURL(data);
+}
+
 export default function AdminDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
