@@ -92,7 +92,9 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selected, setSelected] = useState<Registration | null>(null);
   const [search, setSearch] = useState('');
-
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLabel, setPreviewLabel] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/admin'); return; }
