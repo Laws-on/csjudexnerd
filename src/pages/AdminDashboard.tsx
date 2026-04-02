@@ -132,6 +132,27 @@ export default function AdminDashboard() {
     if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status } : null);
   };
 
+  const handlePreview = async (path: string, label: string) => {
+    setPreviewLabel(label);
+    setPreviewLoading(true);
+    setPreviewUrl('loading');
+    const url = await getPreviewUrl(path);
+    if (!url) {
+      toast.error('Failed to load preview');
+      setPreviewUrl(null);
+      setPreviewLoading(false);
+      return;
+    }
+    setPreviewUrl(url);
+    setPreviewLoading(false);
+  };
+
+  const closePreview = () => {
+    if (previewUrl && previewUrl !== 'loading') URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewLabel('');
+  };
+
   const filtered = registrations.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase()) ||
     r.matriculation_number.toLowerCase().includes(search.toLowerCase()) ||
