@@ -345,11 +345,31 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Document Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={open => !open && closePreview()}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader><DialogTitle>{previewLabel}</DialogTitle></DialogHeader>
+          {previewLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <p className="text-muted-foreground">Loading preview...</p>
+            </div>
+          ) : previewUrl && previewUrl !== 'loading' && (
+            <div className="max-h-[75vh] overflow-auto">
+              {previewUrl.includes('blob:') && (
+                previewLabel.toLowerCase().includes('photo') || previewLabel.toLowerCase().includes('passport')
+                  ? <img src={previewUrl} alt={previewLabel} className="max-w-full mx-auto rounded-md" />
+                  : <iframe src={previewUrl} className="w-full h-[70vh] rounded-md border" title={previewLabel} />
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function DocLink({ label, path, name }: { label: string; path: string | null; name: string }) {
+function DocLink({ label, path, name, onPreview }: { label: string; path: string | null; name: string; onPreview?: (path: string, label: string) => void }) {
   if (!path) {
     return (
       <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
@@ -362,8 +382,9 @@ function DocLink({ label, path, name }: { label: string; path: string | null; na
     );
   }
 
-  const ext = path.split('.').pop() || 'file';
+  const ext = path.split('.').pop()?.toLowerCase() || 'file';
   const filename = `${name.replace(/\s+/g, '_')}_${label.replace(/\s+/g, '_')}.${ext}`;
+  const canPreview = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
 
   return (
     <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/50">
@@ -371,9 +392,16 @@ function DocLink({ label, path, name }: { label: string; path: string | null; na
         <FileText className="h-4 w-4 text-primary" />
         <span className="text-sm text-foreground">{label}</span>
       </div>
-      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => downloadFile(path, filename)}>
-        <Download className="h-3.5 w-3.5 mr-1" /> Download
-      </Button>
+      <div className="flex gap-1">
+        {canPreview && onPreview && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onPreview(path, label)}>
+            <Eye className="h-3.5 w-3.5 mr-1" /> Preview
+          </Button>
+        )}
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => downloadFile(path, filename)}>
+          <Download className="h-3.5 w-3.5 mr-1" /> Download
+        </Button>
+      </div>
     </div>
   );
 }
