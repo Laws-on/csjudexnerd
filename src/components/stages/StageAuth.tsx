@@ -11,17 +11,36 @@ interface StageAuthProps {
   onNext: () => void;
 }
 
+const validatePassword = (pw: string): string | null => {
+  if (pw.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z]/.test(pw)) return 'Password must include an uppercase letter';
+  if (!/[a-z]/.test(pw)) return 'Password must include a lowercase letter';
+  if (!/[0-9]/.test(pw)) return 'Password must include a number';
+  if (!/[^A-Za-z0-9]/.test(pw)) return 'Password must include a special character (!@#$%...)';
+  return null;
+};
+
 const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLogin) {
+      const pwError = validatePassword(password);
+      if (pwError) {
+        setPasswordError(pwError);
+        return;
+      }
+    }
+
     setLoading(true);
 
     if (isLogin) {
