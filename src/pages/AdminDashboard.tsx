@@ -328,14 +328,14 @@ export default function AdminDashboard() {
                 <Separator />
                 <Section title="Uploaded Documents">
                   <div className="col-span-2 space-y-2">
-                    <DocLink label="Certification Page" path={selected.certification_page_path} name={selected.full_name} />
-                    <DocLink label="Passport Photo" path={selected.passport_photo_path} name={selected.full_name} />
-                    <DocLink label={`NIN Document (${selected.nin_document_type || 'N/A'})`} path={selected.nin_document_path} name={selected.full_name} />
-                    <DocLink label="Authorization Letter" path={selected.authorization_letter_path} name={selected.full_name} />
-                    <DocLink label="Payment Receipt" path={selected.payment_receipt_path} name={selected.full_name} />
+                    <DocLink label="Certification Page" path={selected.certification_page_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Passport Photo" path={selected.passport_photo_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label={`NIN Document (${selected.nin_document_type || 'N/A'})`} path={selected.nin_document_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Authorization Letter" path={selected.authorization_letter_path} name={selected.full_name} onPreview={handlePreview} />
+                    <DocLink label="Payment Receipt" path={selected.payment_receipt_path} name={selected.full_name} onPreview={handlePreview} />
                     {selected.project_file_paths && selected.project_file_paths.length > 0 && (
                       selected.project_file_paths.map((p, i) => (
-                        <DocLink key={i} label={`Project File ${i + 1}`} path={p} name={selected.full_name} />
+                        <DocLink key={i} label={`Project File ${i + 1}`} path={p} name={selected.full_name} onPreview={handlePreview} />
                       ))
                     )}
                   </div>
