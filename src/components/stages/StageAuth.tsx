@@ -113,6 +113,9 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {passwordError && !isLogin && (
+              <p className="text-sm text-destructive">{passwordError}</p>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
