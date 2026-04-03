@@ -160,6 +160,20 @@ export default function AdminDashboard() {
     (r.student_email || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const exportCsv = () => {
+    if (filtered.length === 0) { toast.error('No data to export'); return; }
+    const headers = ['Full Name','Email','Phone','Sex','DOB','Marital Status','NIN','Nationality','State','LGA','Town/City','Address','NOK Name','NOK Phone','NOK Email','Institution','Faculty','Department','Programme Category','Programme Type','Matric No.','HOD','HOD Phone','HOD Email','Supervisor','Supervisor Phone','Supervisor Email','Project Title','Payment Status','Registered'];
+    const escape = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = filtered.map(r => [r.full_name,r.student_email||'',r.phone_number,r.sex,r.date_of_birth,r.marital_status,r.nin,r.nationality,r.state_of_origin,r.local_government,r.town_city,r.residential_address,r.nok_name,r.nok_phone,r.nok_email,r.institution,r.faculty,r.department,r.programme_category,r.programme_type,r.matriculation_number,`${r.hod_title} ${r.hod_full_name}`,r.hod_phone,r.hod_email,`${r.supervisor_title} ${r.supervisor_full_name}`,r.supervisor_phone,r.supervisor_email,r.project_title,r.payment_status,new Date(r.created_at).toLocaleDateString()].map(escape).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `registrations_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} registrations`);
+  };
+
   const stats = {
     total: registrations.length,
     pending: registrations.filter(r => r.payment_status === 'pending').length,
