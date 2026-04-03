@@ -210,11 +210,16 @@ export default function AdminDashboard() {
         </div>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
             <CardTitle>Student Registrations</CardTitle>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search name, matric, institution..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+            <div className="flex items-center gap-2">
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search name, matric, institution..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+              <Button variant="outline" size="sm" onClick={exportCsv}>
+                <FileDown className="h-4 w-4 mr-1" /> Export CSV
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
