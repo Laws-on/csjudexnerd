@@ -324,24 +324,38 @@ export default function AdminDashboard() {
                 {selected.payment_status === 'confirmed' && (
                   <>
                     <Separator />
-                    <Button
-                      className="w-full"
-                      onClick={() =>
-                        generateApprovedSlip({
-                          fullName: selected.full_name,
-                          matriculationNumber: selected.matriculation_number,
-                          institution: selected.institution,
-                          faculty: selected.faculty,
-                          department: selected.department,
-                          programmeCategory: selected.programme_category,
-                          programmeType: selected.programme_type,
-                          projectTitle: selected.project_title,
-                          approvalDate: new Date().toLocaleDateString(),
-                        })
-                      }
-                    >
-                      <FileCheck className="h-4 w-4 mr-2" /> Generate Approved Slip (PDF)
-                    </Button>
+                    <Section title="Send Approval Slip">
+                      <div className="col-span-2 space-y-3">
+                        <Label htmlFor="approval-slip-upload" className="text-sm text-muted-foreground">
+                          Attach your own approval slip (PDF/Image) to upload for this student
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="approval-slip-upload"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error('File must be under 5 MB');
+                                return;
+                              }
+                              const ext = file.name.split('.').pop();
+                              const path = `${selected.user_id}/approval-slip/${Date.now()}.${ext}`;
+                              const { error } = await supabase.storage.from('registration-docs').upload(path, file);
+                              if (error) {
+                                toast.error('Upload failed: ' + error.message);
+                                return;
+                              }
+                              toast.success('Approval slip uploaded successfully');
+                              e.target.value = '';
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Max 5 MB — PDF, JPG, or PNG</p>
+                      </div>
+                    </Section>
                   </>
                 )}
                 <Separator />
