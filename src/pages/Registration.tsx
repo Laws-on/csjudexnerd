@@ -11,6 +11,7 @@ import StagePayment from '@/components/stages/StagePayment';
 import { RegistrationData, initialRegistrationData } from '@/types/registration';
 import { useToast } from '@/hooks/use-toast';
 import { submitRegistration } from '@/lib/registration-service';
+import { supabase } from '@/integrations/supabase/client';
 import { GraduationCap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -20,15 +21,26 @@ const Registration: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [authChecked, setAuthChecked] = useState(false);
+  
 
-  // Once auth finishes loading, skip to step 2 if user is logged in
+  // Redirect logged-in users who already have a registration to dashboard
   React.useEffect(() => {
-    if (!loading && !authChecked) {
-      if (user) setStep(2);
-      setAuthChecked(true);
+    if (!loading && user) {
+      // Check if they already submitted a registration
+      supabase
+        .from('registrations')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            navigate('/dashboard');
+          } else {
+            setStep(2); // logged in but no registration yet, skip auth step
+          }
+        });
     }
-  }, [loading, user, authChecked]);
+  }, [loading, user, navigate]);
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);

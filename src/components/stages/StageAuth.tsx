@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface StageAuthProps {
   onNext: () => void;
@@ -29,6 +30,7 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +50,7 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
       if (error) {
         toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
       } else {
-        onNext();
+        navigate('/dashboard');
       }
     } else {
       const { error } = await signUp(email, password);
