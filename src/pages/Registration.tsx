@@ -11,6 +11,7 @@ import StagePayment from '@/components/stages/StagePayment';
 import { RegistrationData, initialRegistrationData } from '@/types/registration';
 import { useToast } from '@/hooks/use-toast';
 import { submitRegistration } from '@/lib/registration-service';
+import { supabase } from '@/integrations/supabase/client';
 import { GraduationCap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
