@@ -21,7 +21,7 @@ const Registration: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [authChecked, setAuthChecked] = useState(false);
+  
 
   // Redirect logged-in users who already have a registration to dashboard
   React.useEffect(() => {
