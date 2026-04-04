@@ -51,7 +51,7 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
       if (error) {
         toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
       } else {
-        onNext();
+        navigate('/dashboard');
       }
     } else {
       const { error } = await signUp(email, password);
