@@ -31,7 +31,6 @@ const StageAuth: React.FC<StageAuthProps> = ({ onNext }) => {
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
