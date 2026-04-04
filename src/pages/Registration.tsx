@@ -22,13 +22,24 @@ const Registration: React.FC = () => {
   const [step, setStep] = useState(1);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Once auth finishes loading, skip to step 2 if user is logged in
+  // Redirect logged-in users who already have a registration to dashboard
   React.useEffect(() => {
-    if (!loading && !authChecked) {
-      if (user) setStep(2);
-      setAuthChecked(true);
+    if (!loading && user) {
+      // Check if they already submitted a registration
+      supabase
+        .from('registrations')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            navigate('/dashboard');
+          } else {
+            setStep(2); // logged in but no registration yet, skip auth step
+          }
+        });
     }
-  }, [loading, user, authChecked]);
+  }, [loading, user, navigate]);
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
