@@ -25,8 +25,25 @@ const StudentDashboard: React.FC = () => {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle()
-        .then(({ data }) => {
+        .then(async ({ data }) => {
           setRegistration(data);
+          // Check for approval slip in storage
+          const { data: files } = await supabase.storage
+            .from('registration-docs')
+            .list(`${user.id}/approval-slip`);
+          if (files && files.length > 0) {
+            const latestFile = files.sort((a, b) => b.name.localeCompare(a.name))[0];
+            const { data: urlData } = supabase.storage
+              .from('registration-docs')
+              .getPublicUrl(`${user.id}/approval-slip/${latestFile.name}`);
+            // Since bucket is private, use createSignedUrl instead
+            const { data: signedData } = await supabase.storage
+              .from('registration-docs')
+              .createSignedUrl(`${user.id}/approval-slip/${latestFile.name}`, 3600);
+            if (signedData?.signedUrl) {
+              setApprovalSlipUrl(signedData.signedUrl);
+            }
+          }
           setFetching(false);
         });
     }
