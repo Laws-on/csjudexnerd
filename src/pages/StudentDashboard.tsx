@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download } from 'lucide-react';
+import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, loading, signOut } = useAuth();
@@ -13,6 +13,15 @@ const StudentDashboard: React.FC = () => {
   const [registration, setRegistration] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
   const [approvalSlipUrl, setApprovalSlipUrl] = useState<string | null>(null);
+
+  const openDocument = useCallback(async (path: string) => {
+    const { data } = await supabase.storage
+      .from('registration-docs')
+      .createSignedUrl(path, 3600);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank');
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
