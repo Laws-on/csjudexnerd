@@ -12,6 +12,7 @@ const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [registration, setRegistration] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const [approvalSlipUrl, setApprovalSlipUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
