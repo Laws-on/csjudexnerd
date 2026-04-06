@@ -158,6 +158,38 @@ const StudentDashboard: React.FC = () => {
                 </ul>
               </CardContent>
             </Card>
+
+            {/* Approval Slip Download */}
+            {registration.payment_status === 'confirmed' && approvalSlipUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Download className="h-5 w-5 text-primary" />
+                    Approval Slip
+                  </CardTitle>
+                  <CardDescription>Your NERD clearance slip is ready for download</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild>
+                    <a href={approvalSlipUrl} target="_blank" rel="noopener noreferrer" download>
+                      <Download className="h-4 w-4 mr-2" /> Download Approval Slip
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {registration.payment_status === 'confirmed' && !approvalSlipUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    Approval Slip
+                  </CardTitle>
+                  <CardDescription>Your payment has been confirmed. The approval slip will be available here once the admin uploads it.</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
           </>
         ) : (
           /* No registration yet */
