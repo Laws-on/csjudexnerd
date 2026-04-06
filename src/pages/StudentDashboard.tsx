@@ -5,13 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [registration, setRegistration] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const [approvalSlipUrl, setApprovalSlipUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -24,8 +25,25 @@ const StudentDashboard: React.FC = () => {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle()
-        .then(({ data }) => {
+        .then(async ({ data }) => {
           setRegistration(data);
+          // Check for approval slip in storage
+          const { data: files } = await supabase.storage
+            .from('registration-docs')
+            .list(`${user.id}/approval-slip`);
+          if (files && files.length > 0) {
+            const latestFile = files.sort((a, b) => b.name.localeCompare(a.name))[0];
+            const { data: urlData } = supabase.storage
+              .from('registration-docs')
+              .getPublicUrl(`${user.id}/approval-slip/${latestFile.name}`);
+            // Since bucket is private, use createSignedUrl instead
+            const { data: signedData } = await supabase.storage
+              .from('registration-docs')
+              .createSignedUrl(`${user.id}/approval-slip/${latestFile.name}`, 3600);
+            if (signedData?.signedUrl) {
+              setApprovalSlipUrl(signedData.signedUrl);
+            }
+          }
           setFetching(false);
         });
     }
@@ -140,6 +158,38 @@ const StudentDashboard: React.FC = () => {
                 </ul>
               </CardContent>
             </Card>
+
+            {/* Approval Slip Download */}
+            {registration.payment_status === 'confirmed' && approvalSlipUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Download className="h-5 w-5 text-primary" />
+                    Approval Slip
+                  </CardTitle>
+                  <CardDescription>Your NERD clearance slip is ready for download</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild>
+                    <a href={approvalSlipUrl} target="_blank" rel="noopener noreferrer" download>
+                      <Download className="h-4 w-4 mr-2" /> Download Approval Slip
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {registration.payment_status === 'confirmed' && !approvalSlipUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    Approval Slip
+                  </CardTitle>
+                  <CardDescription>Your payment has been confirmed. The approval slip will be available here once the admin uploads it.</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
           </>
         ) : (
           /* No registration yet */
