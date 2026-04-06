@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download } from 'lucide-react';
+import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, loading, signOut } = useAuth();
@@ -13,6 +13,15 @@ const StudentDashboard: React.FC = () => {
   const [registration, setRegistration] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
   const [approvalSlipUrl, setApprovalSlipUrl] = useState<string | null>(null);
+
+  const openDocument = useCallback(async (path: string) => {
+    const { data } = await supabase.storage
+      .from('registration-docs')
+      .createSignedUrl(path, 3600);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank');
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -138,22 +147,51 @@ const StudentDashboard: React.FC = () => {
                 <CardTitle>Uploaded Documents</CardTitle>
                 <CardDescription>Documents you submitted during registration</CardDescription>
               </CardHeader>
-              <CardContent>
+             <CardContent>
                 <ul className="space-y-2 text-sm">
                   {registration.passport_photo_path && (
-                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /> Passport Photo</li>
+                    <li>
+                      <button onClick={() => openDocument(registration.passport_photo_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                        <ExternalLink className="h-4 w-4" /> Passport Photo
+                      </button>
+                    </li>
                   )}
                   {registration.nin_document_path && (
-                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /> NIN Document</li>
+                    <li>
+                      <button onClick={() => openDocument(registration.nin_document_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                        <ExternalLink className="h-4 w-4" /> NIN Document
+                      </button>
+                    </li>
                   )}
                   {registration.certification_page_path && (
-                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /> Certification Page</li>
+                    <li>
+                      <button onClick={() => openDocument(registration.certification_page_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                        <ExternalLink className="h-4 w-4" /> Certification Page
+                      </button>
+                    </li>
                   )}
                   {registration.authorization_letter_path && (
-                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /> Authorization Letter</li>
+                    <li>
+                      <button onClick={() => openDocument(registration.authorization_letter_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                        <ExternalLink className="h-4 w-4" /> Authorization Letter
+                      </button>
+                    </li>
                   )}
                   {registration.payment_receipt_path && (
-                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /> Payment Receipt</li>
+                    <li>
+                      <button onClick={() => openDocument(registration.payment_receipt_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                        <ExternalLink className="h-4 w-4" /> Payment Receipt
+                      </button>
+                    </li>
+                  )}
+                  {registration.project_file_paths && registration.project_file_paths.length > 0 && (
+                    registration.project_file_paths.map((path: string, i: number) => (
+                      <li key={path}>
+                        <button onClick={() => openDocument(path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
+                          <ExternalLink className="h-4 w-4" /> Project File {i + 1}
+                        </button>
+                      </li>
+                    ))
                   )}
                 </ul>
               </CardContent>
