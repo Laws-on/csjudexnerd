@@ -5,7 +5,46 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink } from 'lucide-react';
+import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink, Image } from 'lucide-react';
+
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+
+const isImageFile = (path: string) => {
+  const lower = path.toLowerCase();
+  return IMAGE_EXTENSIONS.some(ext => lower.endsWith(ext));
+};
+
+const DocumentThumbnail: React.FC<{ path: string; label: string; onClick: () => void }> = ({ path, label, onClick }) => {
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isImageFile(path)) {
+      supabase.storage
+        .from('registration-docs')
+        .createSignedUrl(path, 3600)
+        .then(({ data }) => {
+          if (data?.signedUrl) setThumbUrl(data.signedUrl);
+        });
+    }
+  }, [path]);
+
+  return (
+    <li>
+      <button onClick={onClick} className="flex items-center gap-3 text-primary hover:underline cursor-pointer w-full text-left">
+        {thumbUrl ? (
+          <img src={thumbUrl} alt={label} className="h-12 w-12 rounded border border-border object-cover flex-shrink-0" />
+        ) : (
+          <div className="h-12 w-12 rounded border border-border bg-muted flex items-center justify-center flex-shrink-0">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+          </div>
+        )}
+        <span className="flex items-center gap-1">
+          <ExternalLink className="h-3.5 w-3.5" /> {label}
+        </span>
+      </button>
+    </li>
+  );
+};
 
 const StudentDashboard: React.FC = () => {
   const { user, loading, signOut } = useAuth();
@@ -22,7 +61,6 @@ const StudentDashboard: React.FC = () => {
       window.open(data.signedUrl, '_blank');
     }
   }, []);
-
   useEffect(() => {
     if (!loading && !user) {
       navigate('/register');
