@@ -185,50 +185,26 @@ const StudentDashboard: React.FC = () => {
                 <CardTitle>Uploaded Documents</CardTitle>
                 <CardDescription>Documents you submitted during registration</CardDescription>
               </CardHeader>
-             <CardContent>
-                <ul className="space-y-2 text-sm">
+              <CardContent>
+                <ul className="space-y-3 text-sm">
                   {registration.passport_photo_path && (
-                    <li>
-                      <button onClick={() => openDocument(registration.passport_photo_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                        <ExternalLink className="h-4 w-4" /> Passport Photo
-                      </button>
-                    </li>
+                    <DocumentThumbnail path={registration.passport_photo_path} label="Passport Photo" onClick={() => openDocument(registration.passport_photo_path)} />
                   )}
                   {registration.nin_document_path && (
-                    <li>
-                      <button onClick={() => openDocument(registration.nin_document_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                        <ExternalLink className="h-4 w-4" /> NIN Document
-                      </button>
-                    </li>
+                    <DocumentThumbnail path={registration.nin_document_path} label="NIN Document" onClick={() => openDocument(registration.nin_document_path)} />
                   )}
                   {registration.certification_page_path && (
-                    <li>
-                      <button onClick={() => openDocument(registration.certification_page_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                        <ExternalLink className="h-4 w-4" /> Certification Page
-                      </button>
-                    </li>
+                    <DocumentThumbnail path={registration.certification_page_path} label="Certification Page" onClick={() => openDocument(registration.certification_page_path)} />
                   )}
                   {registration.authorization_letter_path && (
-                    <li>
-                      <button onClick={() => openDocument(registration.authorization_letter_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                        <ExternalLink className="h-4 w-4" /> Authorization Letter
-                      </button>
-                    </li>
+                    <DocumentThumbnail path={registration.authorization_letter_path} label="Authorization Letter" onClick={() => openDocument(registration.authorization_letter_path)} />
                   )}
                   {registration.payment_receipt_path && (
-                    <li>
-                      <button onClick={() => openDocument(registration.payment_receipt_path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                        <ExternalLink className="h-4 w-4" /> Payment Receipt
-                      </button>
-                    </li>
+                    <DocumentThumbnail path={registration.payment_receipt_path} label="Payment Receipt" onClick={() => openDocument(registration.payment_receipt_path)} />
                   )}
                   {registration.project_file_paths && registration.project_file_paths.length > 0 && (
                     registration.project_file_paths.map((path: string, i: number) => (
-                      <li key={path}>
-                        <button onClick={() => openDocument(path)} className="flex items-center gap-2 text-primary hover:underline cursor-pointer">
-                          <ExternalLink className="h-4 w-4" /> Project File {i + 1}
-                        </button>
-                      </li>
+                      <DocumentThumbnail key={path} path={path} label={`Project File ${i + 1}`} onClick={() => openDocument(path)} />
                     ))
                   )}
                 </ul>
