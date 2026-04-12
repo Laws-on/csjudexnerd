@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { LogOut, Users, CreditCard, Eye, Search, Download, FileText, Upload, FileDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Registration {
   id: string;
