@@ -127,12 +127,30 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const updatePaymentStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('registrations').update({ payment_status: status } as any).eq('id', id);
+  const updatePaymentStatus = async (id: string, status: string, reason?: string) => {
+    if (status === 'rejected') {
+      const reg = registrations.find(r => r.id === id);
+      setRejectionDialog({ id, name: reg?.full_name || '' });
+      setRejectionReason('');
+      return;
+    }
+    const { error } = await supabase.from('registrations').update({ payment_status: status, rejection_reason: null } as any).eq('id', id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Payment status updated to ${status}`);
-    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status } : r));
-    if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status } : null);
+    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status, rejection_reason: null } : r));
+    if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status, rejection_reason: null } : null);
+  };
+
+  const submitRejection = async () => {
+    if (!rejectionDialog) return;
+    if (!rejectionReason.trim()) { toast.error('Please provide a reason for rejection'); return; }
+    const { error } = await supabase.from('registrations').update({ payment_status: 'rejected', rejection_reason: rejectionReason.trim() } as any).eq('id', rejectionDialog.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Registration rejected');
+    setRegistrations(prev => prev.map(r => r.id === rejectionDialog.id ? { ...r, payment_status: 'rejected', rejection_reason: rejectionReason.trim() } : r));
+    if (selected?.id === rejectionDialog.id) setSelected(prev => prev ? { ...prev, payment_status: 'rejected', rejection_reason: rejectionReason.trim() } : null);
+    setRejectionDialog(null);
+    setRejectionReason('');
   };
 
   const handlePreview = async (path: string, label: string) => {
