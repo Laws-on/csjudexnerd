@@ -9,7 +9,7 @@ async function uploadFile(userId: string, folder: string, file: File): Promise<s
   return path;
 }
 
-export async function submitRegistration(userId: string, data: RegistrationData) {
+export async function submitRegistration(userId: string, data: RegistrationData, userEmail?: string) {
   // Upload files in parallel
   const uploads = await Promise.all([
     data.certificationPage ? uploadFile(userId, 'certification', data.certificationPage) : null,
@@ -24,7 +24,7 @@ export async function submitRegistration(userId: string, data: RegistrationData)
 
   const { error } = await supabase.from('registrations').insert({
     user_id: userId,
-    student_email: data.email,
+    student_email: userEmail || data.email,
     full_name: data.fullName,
     phone_number: data.phoneNumber,
     sex: data.sex,
