@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { LogOut, Users, CreditCard, Eye, Search, Download, FileText, Upload, FileDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Registration {
   id: string;
@@ -56,6 +57,7 @@ interface Registration {
   authorization_letter_path: string | null;
   payment_receipt_path: string | null;
   project_file_paths: string[] | null;
+  rejection_reason: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -95,6 +97,8 @@ export default function AdminDashboard() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLabel, setPreviewLabel] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [rejectionDialog, setRejectionDialog] = useState<{ id: string; name: string } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/admin'); return; }
@@ -124,12 +128,30 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const updatePaymentStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('registrations').update({ payment_status: status } as any).eq('id', id);
+  const updatePaymentStatus = async (id: string, status: string, reason?: string) => {
+    if (status === 'rejected') {
+      const reg = registrations.find(r => r.id === id);
+      setRejectionDialog({ id, name: reg?.full_name || '' });
+      setRejectionReason('');
+      return;
+    }
+    const { error } = await supabase.from('registrations').update({ payment_status: status, rejection_reason: null } as any).eq('id', id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Payment status updated to ${status}`);
-    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status } : r));
-    if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status } : null);
+    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, payment_status: status, rejection_reason: null } : r));
+    if (selected?.id === id) setSelected(prev => prev ? { ...prev, payment_status: status, rejection_reason: null } : null);
+  };
+
+  const submitRejection = async () => {
+    if (!rejectionDialog) return;
+    if (!rejectionReason.trim()) { toast.error('Please provide a reason for rejection'); return; }
+    const { error } = await supabase.from('registrations').update({ payment_status: 'rejected', rejection_reason: rejectionReason.trim() } as any).eq('id', rejectionDialog.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Registration rejected');
+    setRegistrations(prev => prev.map(r => r.id === rejectionDialog.id ? { ...r, payment_status: 'rejected', rejection_reason: rejectionReason.trim() } : r));
+    if (selected?.id === rejectionDialog.id) setSelected(prev => prev ? { ...prev, payment_status: 'rejected', rejection_reason: rejectionReason.trim() } : null);
+    setRejectionDialog(null);
+    setRejectionReason('');
   };
 
   const handlePreview = async (path: string, label: string) => {
@@ -320,6 +342,12 @@ export default function AdminDashboard() {
                   <Field label="Project Title" value={selected.project_title} />
                   <Field label="Payment Status" value={selected.payment_status} />
                   <Field label="Registered" value={new Date(selected.created_at).toLocaleDateString()} />
+                  {selected.payment_status === 'rejected' && selected.rejection_reason && (
+                    <div className="col-span-2 mt-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                      <p className="text-sm font-medium text-destructive mb-1">Rejection Reason:</p>
+                      <p className="text-sm text-foreground">{selected.rejection_reason}</p>
+                    </div>
+                  )}
                 </Section>
                 {selected.payment_status === 'confirmed' && (
                   <>
@@ -396,6 +424,29 @@ export default function AdminDashboard() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={!!rejectionDialog} onOpenChange={open => { if (!open) setRejectionDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Reject Registration — {rejectionDialog?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Reason for Rejection</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Explain why this registration is being rejected..."
+                value={rejectionReason}
+                onChange={e => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRejectionDialog(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={submitRejection}>Reject</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

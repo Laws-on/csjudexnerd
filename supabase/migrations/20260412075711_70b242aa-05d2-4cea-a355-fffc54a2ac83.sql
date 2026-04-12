@@ -1,0 +1,1 @@
+ALTER TABLE public.registrations ADD COLUMN rejection_reason text;

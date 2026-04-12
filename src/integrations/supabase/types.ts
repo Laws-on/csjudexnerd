@@ -47,6 +47,7 @@ export type Database = {
           programme_type: string
           project_file_paths: string[] | null
           project_title: string
+          rejection_reason: string | null
           residential_address: string
           sex: string
           state_of_origin: string
@@ -91,6 +92,7 @@ export type Database = {
           programme_type: string
           project_file_paths?: string[] | null
           project_title: string
+          rejection_reason?: string | null
           residential_address: string
           sex: string
           state_of_origin: string
@@ -135,6 +137,7 @@ export type Database = {
           programme_type?: string
           project_file_paths?: string[] | null
           project_title?: string
+          rejection_reason?: string | null
           residential_address?: string
           sex?: string
           state_of_origin?: string

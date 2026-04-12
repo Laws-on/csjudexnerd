@@ -176,6 +176,13 @@ const StudentDashboard: React.FC = () => {
                     <p className="font-medium text-foreground capitalize">{registration.payment_status}</p>
                   </div>
                 </div>
+
+                {registration.payment_status === 'rejected' && (registration as any).rejection_reason && (
+                  <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                    <p className="text-sm font-medium text-destructive mb-1">Rejection Reason:</p>
+                    <p className="text-sm text-foreground">{(registration as any).rejection_reason}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
