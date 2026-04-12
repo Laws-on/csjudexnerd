@@ -56,7 +56,7 @@ const Registration: React.FC = () => {
     }
     setSubmitting(true);
     try {
-      await submitRegistration(user.id, data);
+      await submitRegistration(user.id, data, user.email);
       setCompleted(true);
       toast({ title: 'Registration Complete!', description: 'Your enrollment has been submitted successfully.' });
     } catch (err: any) {
