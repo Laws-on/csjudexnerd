@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink, Image } from 'lucide-react';
+import { GraduationCap, FileText, Clock, CheckCircle2, AlertCircle, LogOut, Download, ExternalLink, Edit, Plus } from 'lucide-react';
+import EditRegistrationForm from '@/components/EditRegistrationForm';
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
 
@@ -52,6 +53,7 @@ const StudentDashboard: React.FC = () => {
   const [registration, setRegistration] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
   const [approvalSlipUrl, setApprovalSlipUrl] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const openDocument = useCallback(async (path: string) => {
     const { data } = await supabase.storage
@@ -61,45 +63,71 @@ const StudentDashboard: React.FC = () => {
       window.open(data.signedUrl, '_blank');
     }
   }, []);
+
+  const fetchRegistration = useCallback(async () => {
+    if (!user) return;
+    setFetching(true);
+    const { data } = await supabase
+      .from('registrations')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    setRegistration(data);
+    if (data?.payment_status === 'confirmed') {
+      const { data: files } = await supabase.storage
+        .from('registration-docs')
+        .list(`${user.id}/approval-slip`);
+      if (files && files.length > 0) {
+        const latestFile = files.sort((a, b) => b.name.localeCompare(a.name))[0];
+        const { data: signedData } = await supabase.storage
+          .from('registration-docs')
+          .createSignedUrl(`${user.id}/approval-slip/${latestFile.name}`, 3600);
+        if (signedData?.signedUrl) {
+          setApprovalSlipUrl(signedData.signedUrl);
+        }
+      }
+    }
+    setFetching(false);
+  }, [user]);
+
   useEffect(() => {
     if (!loading && !user) {
       navigate('/register');
       return;
     }
-    if (user) {
-      supabase
-        .from('registrations')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle()
-        .then(async ({ data }) => {
-          setRegistration(data);
-          // Check for approval slip in storage
-          const { data: files } = await supabase.storage
-            .from('registration-docs')
-            .list(`${user.id}/approval-slip`);
-          if (files && files.length > 0) {
-            const latestFile = files.sort((a, b) => b.name.localeCompare(a.name))[0];
-            const { data: urlData } = supabase.storage
-              .from('registration-docs')
-              .getPublicUrl(`${user.id}/approval-slip/${latestFile.name}`);
-            // Since bucket is private, use createSignedUrl instead
-            const { data: signedData } = await supabase.storage
-              .from('registration-docs')
-              .createSignedUrl(`${user.id}/approval-slip/${latestFile.name}`, 3600);
-            if (signedData?.signedUrl) {
-              setApprovalSlipUrl(signedData.signedUrl);
-            }
-          }
-          setFetching(false);
-        });
-    }
-  }, [user, loading, navigate]);
+    if (user) fetchRegistration();
+  }, [user, loading, navigate, fetchRegistration]);
 
   if (loading || fetching) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  // Editing mode
+  if (editing && registration) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card">
+          <div className="container max-w-4xl flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <GraduationCap className="h-8 w-8 text-primary" />
+              <h1 className="font-display text-xl font-bold text-foreground">Edit Registration</h1>
+            </div>
+          </div>
+        </header>
+        <div className="container max-w-2xl py-8">
+          <EditRegistrationForm
+            registration={registration}
+            onCancel={() => setEditing(false)}
+            onSuccess={() => {
+              setEditing(false);
+              fetchRegistration();
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -129,9 +157,7 @@ const StudentDashboard: React.FC = () => {
       <div className="container max-w-2xl py-8 space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Welcome{registration ? `, ${registration.full_name}` : ''}!</h2>
-          <p className="text-muted-foreground mt-1">
-            {user?.email}
-          </p>
+          <p className="text-muted-foreground mt-1">{user?.email}</p>
         </div>
 
         {registration ? (
@@ -177,11 +203,18 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {registration.payment_status === 'rejected' && (registration as any).rejection_reason && (
+                {registration.payment_status === 'rejected' && registration.rejection_reason && (
                   <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
                     <p className="text-sm font-medium text-destructive mb-1">Rejection Reason:</p>
-                    <p className="text-sm text-foreground">{(registration as any).rejection_reason}</p>
+                    <p className="text-sm text-foreground">{registration.rejection_reason}</p>
                   </div>
+                )}
+
+                {/* Edit & Resubmit button for rejected registrations */}
+                {registration.payment_status === 'rejected' && (
+                  <Button onClick={() => setEditing(true)} className="mt-2">
+                    <Edit className="h-4 w-4 mr-2" /> Edit & Resubmit
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -249,9 +282,24 @@ const StudentDashboard: React.FC = () => {
                 </CardHeader>
               </Card>
             )}
+
+            {/* New Submission */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5 text-primary" />
+                  New Submission
+                </CardTitle>
+                <CardDescription>Start a fresh registration submission</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" onClick={() => setEditing(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Edit & Submit New Version
+                </Button>
+              </CardContent>
+            </Card>
           </>
         ) : (
-          /* No registration yet */
           <Card>
             <CardHeader>
               <CardTitle>Start Your Registration</CardTitle>
