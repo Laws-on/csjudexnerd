@@ -186,42 +186,18 @@ const EditRegistrationForm: React.FC<EditRegistrationFormProps> = ({ registratio
           <CardDescription>Only upload files you want to replace. Previously uploaded files will be kept if you don't upload new ones.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label>Passport Photo</Label>
-            <FileDropzone accept={{ 'image/*': ['.jpg', '.jpeg', '.png'] }} maxFiles={1}
-              onDrop={files => handleChange({ passportPhoto: files[0] || null })}
-              label={data.passportPhoto ? data.passportPhoto.name : 'Drop new passport photo (optional)'} />
-          </div>
-          <div>
-            <Label>NIN Document</Label>
-            <FileDropzone accept={{ 'image/*': ['.jpg', '.jpeg', '.png'], 'application/pdf': ['.pdf'] }} maxFiles={1}
-              onDrop={files => handleChange({ ninDocument: files[0] || null })}
-              label={data.ninDocument ? data.ninDocument.name : 'Drop new NIN document (optional)'} />
-          </div>
-          <div>
-            <Label>Certification Page</Label>
-            <FileDropzone accept={{ 'image/*': ['.jpg', '.jpeg', '.png'], 'application/pdf': ['.pdf'] }} maxFiles={1}
-              onDrop={files => handleChange({ certificationPage: files[0] || null })}
-              label={data.certificationPage ? data.certificationPage.name : 'Drop new certification page (optional)'} />
-          </div>
-          <div>
-            <Label>Authorization Letter</Label>
-            <FileDropzone accept={{ 'image/*': ['.jpg', '.jpeg', '.png'], 'application/pdf': ['.pdf'] }} maxFiles={1}
-              onDrop={files => handleChange({ authorizationLetter: files[0] || null })}
-              label={data.authorizationLetter ? data.authorizationLetter.name : 'Drop new authorization letter (optional)'} />
-          </div>
-          <div>
-            <Label>Payment Receipt</Label>
-            <FileDropzone accept={{ 'image/*': ['.jpg', '.jpeg', '.png'], 'application/pdf': ['.pdf'] }} maxFiles={1}
-              onDrop={files => handleChange({ paymentReceipt: files[0] || null })}
-              label={data.paymentReceipt ? data.paymentReceipt.name : 'Drop new payment receipt (optional)'} />
-          </div>
-          <div>
-            <Label>Project Files</Label>
-            <FileDropzone accept={{ 'application/pdf': ['.pdf'], 'application/msword': ['.doc', '.docx'] }} maxFiles={5}
-              onDrop={files => handleChange({ projectFiles: files })}
-              label={data.projectFiles.length > 0 ? `${data.projectFiles.length} file(s) selected` : 'Drop new project files (optional)'} />
-          </div>
+          <FileDropzone label="Passport Photo" instruction="Upload new passport photo (optional)" accept=".jpg,.jpeg,.png" maxSizeKB={2048}
+            files={data.passportPhoto} onFilesChange={f => handleChange({ passportPhoto: f as File | null })} />
+          <FileDropzone label="NIN Document" instruction="Upload new NIN document (optional)" accept=".jpg,.jpeg,.png,.pdf" maxSizeKB={5120}
+            files={data.ninDocument} onFilesChange={f => handleChange({ ninDocument: f as File | null })} />
+          <FileDropzone label="Certification Page" instruction="Upload new certification page (optional)" accept=".jpg,.jpeg,.png,.pdf" maxSizeKB={5120}
+            files={data.certificationPage} onFilesChange={f => handleChange({ certificationPage: f as File | null })} />
+          <FileDropzone label="Authorization Letter" instruction="Upload new authorization letter (optional)" accept=".jpg,.jpeg,.png,.pdf" maxSizeKB={5120}
+            files={data.authorizationLetter} onFilesChange={f => handleChange({ authorizationLetter: f as File | null })} />
+          <FileDropzone label="Payment Receipt" instruction="Upload new payment receipt (optional)" accept=".jpg,.jpeg,.png,.pdf" maxSizeKB={5120}
+            files={data.paymentReceipt} onFilesChange={f => handleChange({ paymentReceipt: f as File | null })} />
+          <FileDropzone label="Project Files" instruction="Upload new project files (optional)" accept=".pdf,.doc,.docx" maxSizeKB={10240}
+            files={data.projectFiles.length > 0 ? data.projectFiles : null} onFilesChange={f => handleChange({ projectFiles: f ? (Array.isArray(f) ? f : [f]) : [] })} multiple />
         </CardContent>
       </Card>
 
