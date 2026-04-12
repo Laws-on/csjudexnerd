@@ -57,6 +57,7 @@ interface Registration {
   authorization_letter_path: string | null;
   payment_receipt_path: string | null;
   project_file_paths: string[] | null;
+  rejection_reason: string | null;
 }
 
 const statusColors: Record<string, string> = {
