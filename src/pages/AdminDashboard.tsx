@@ -342,6 +342,12 @@ export default function AdminDashboard() {
                   <Field label="Project Title" value={selected.project_title} />
                   <Field label="Payment Status" value={selected.payment_status} />
                   <Field label="Registered" value={new Date(selected.created_at).toLocaleDateString()} />
+                  {selected.payment_status === 'rejected' && selected.rejection_reason && (
+                    <div className="col-span-2 mt-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                      <p className="text-sm font-medium text-destructive mb-1">Rejection Reason:</p>
+                      <p className="text-sm text-foreground">{selected.rejection_reason}</p>
+                    </div>
+                  )}
                 </Section>
                 {selected.payment_status === 'confirmed' && (
                   <>
