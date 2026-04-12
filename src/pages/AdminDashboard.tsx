@@ -419,6 +419,29 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={!!rejectionDialog} onOpenChange={open => { if (!open) setRejectionDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Reject Registration — {rejectionDialog?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Reason for Rejection</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Explain why this registration is being rejected..."
+                value={rejectionReason}
+                onChange={e => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRejectionDialog(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={submitRejection}>Reject</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
