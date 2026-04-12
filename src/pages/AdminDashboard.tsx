@@ -96,6 +96,8 @@ export default function AdminDashboard() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLabel, setPreviewLabel] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [rejectionDialog, setRejectionDialog] = useState<{ id: string; name: string } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/admin'); return; }
