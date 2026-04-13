@@ -1,1 +1,5 @@
 project_id = "ilqcoxdrahcntvmoxbji"
+
+[auth]
+site_url = "https://nerdregistration.netlify.app"
+additional_redirect_urls = ["https://nerdregistration.netlify.app", "https://nerdregistration.netlify.app/**", "https://nerdregistration.lovable.app", "https://nerdregistration.lovable.app/**"]
